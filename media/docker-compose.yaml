@@ -1,0 +1,48 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    # network_mode: host
+    volumes:
+      - /opt/homelab/media/jellyfin/config:/config
+      - /opt/homelab/media/jellyfin/cache:/cache
+      - type: bind
+        source: /mnt/ext_x10p/media
+        target: /media
+        read_only: true
+    ports:
+      - "8096:8096"
+    restart: unless-stopped
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.jellyfin.rule=Host(`jellyfin.lan`)"
+    #   - "traefik.http.routers.jellyfin.entrypoints=web"
+    #   - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+
+  yacreaderlibraryserver:
+    container_name: yacreaderlibraryserver
+    image: yacreader/yacreaderlibraryserver:develop
+    volumes:
+      - /opt/homelab/media/yacreader/config:/config
+      - /opt/homelab/media/yacreader/comics:/comics
+    ports:
+      - "9999:8181"
+    restart: unless-stopped
+
+  filebrowser:
+    image: filebrowser/filebrowser
+    container_name: filebrowser
+    volumes:
+      - /mnt/ext_x10p/media:/srv
+      - /opt/homelab/media/filebrowser/filebrowser.db:/database/filebrowser.db
+      - /opt/homelab/media/filebrowser/settings.json:/.filebrowser.json
+    environment:
+      - PUID=1000
+      - PGID=1000
+    ports:
+      - "8095:80"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "traefik.http.routers.filebrowser.rule=Host(`filebrowser.lan`)"
+    #   - "traefik.http.routers.filebrowser.entrypoints=web"
+    #   - "traefik.http.services.filebrowser.loadbalancer.server.port=80"

@@ -1,0 +1,51 @@
+- id: '1710787147894'
+  alias: Doorbell
+  description: ''
+  triggers:
+  - device_id: 08b90b556783bff7a4e3684b56408a4c
+    domain: zha
+    type: remote_button_short_press
+    subtype: turn_on
+    trigger: device
+  - device_id: 08b90b556783bff7a4e3684b56408a4c
+    domain: zha
+    type: remote_button_double_press
+    subtype: turn_on
+    trigger: device
+  - device_id: 08b90b556783bff7a4e3684b56408a4c
+    domain: zha
+    type: remote_button_long_press
+    subtype: dim_up
+    trigger: device
+  - device_id: 08b90b556783bff7a4e3684b56408a4c
+    domain: zha
+    type: remote_button_long_release
+    subtype: dim_up
+    trigger: device
+  conditions: []
+  actions:
+  - metadata: {}
+    data:
+      message: "\U0001F514DOORBELL!!"
+    action: notify.notify
+  - data:
+      volume_level: 0.7
+    action: media_player.volume_set
+    target:
+      device_id: 4737df3e8f1c820ed8dfdc13f9aae072
+  - target:
+      entity_id: media_player.googlehome1018
+    data:
+      media_content_id: media-source://media_source/media/doorbell-1.mp3
+      media_content_type: audio/mpeg
+    metadata:
+      title: doorbell-1.mp3
+      thumbnail:
+      media_class: music
+      children_media_class:
+      navigateIds:
+      - {}
+      - media_content_type: app
+        media_content_id: media-source://media_source
+    action: media_player.play_media
+  mode: single

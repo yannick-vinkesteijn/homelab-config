@@ -1,0 +1,34 @@
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /opt/homelab/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /dev/serial/by-id:/dev/serial/by-id
+      - /srv/media:/media
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyS4:/dev/ttyS4
+      - /dev/ttyACM0:/dev/ttyACM0
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    depends_on:
+      - influxdb
+      - mariadb
+
+  hass-configurator:
+    container_name: hassconf
+    image: causticlab/hass-configurator-docker
+    depends_on:
+      - homeassistant
+    volumes:
+      - /opt/homelab/homeassistant/hassconf:/config
+      - /opt/homelab/homeassistant/config:/hass-config
+    ports:
+      - "3218:3218"
+    restart: unless-stopped

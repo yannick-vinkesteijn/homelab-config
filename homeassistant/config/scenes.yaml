@@ -1,0 +1,221 @@
+- id: '1712942102754'
+  name: All lights
+  entities:
+    light.big_bulb:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: big bulb
+      supported_features: 32
+      state: 'off'
+    light.e14_dim:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: E14 dim
+      supported_features: 32
+      state: 'off'
+    switch.christmas_tree:
+      friendly_name: christmas tree
+      state: unavailable
+    light.filament2:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: filament2
+      supported_features: 32
+      state: 'off'
+    light.gu10_warm_1:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 1
+      supported_features: 32
+      state: 'off'
+    light.gu10_warm_2:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 2
+      supported_features: 32
+      state: 'off'
+    light.gu10_warm_3:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 3
+      supported_features: 32
+      state: 'off'
+    light.e27_color:
+      supported_color_modes:
+      - hs
+      color_mode:
+      brightness:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: E27 color
+      supported_features: 32
+      state: 'off'
+    light.e27_dim:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: E27 dim
+      supported_features: 32
+      state: 'off'
+  icon: mdi:ceiling-light-multiple-outline
+  metadata: {}
+- id: '1714261336372'
+  name: Kitchen lights
+  entities:
+    light.gu10_warm_1:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 1
+      supported_features: 32
+      state: 'off'
+    light.gu10_warm_2:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 2
+      supported_features: 32
+      state: 'off'
+    light.gu10_warm_3:
+      min_color_temp_kelvin: 2202
+      max_color_temp_kelvin: 4000
+      min_mireds: 250
+      max_mireds: 454
+      supported_color_modes:
+      - color_temp
+      color_mode:
+      brightness:
+      color_temp_kelvin:
+      color_temp:
+      hs_color:
+      rgb_color:
+      xy_color:
+      friendly_name: GU10 warm 3
+      supported_features: 32
+      state: 'off'
+  icon: mdi:ceiling-light
+  metadata: {}
+- id: '1714261420722'
+  name: Office lights
+  entities:
+    light.e27_dim:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 254
+      friendly_name: E27 dim
+      supported_features: 32
+      state: 'on'
+  icon: mdi:ceiling-light
+  metadata: {}
+- id: '1714261475641'
+  name: Living lights
+  entities:
+    light.big_bulb:
+      supported_color_modes:
+      - brightness
+      color_mode: brightness
+      brightness: 173
+      friendly_name: big bulb
+      supported_features: 32
+      state: 'on'
+    light.e27_color:
+      supported_color_modes:
+      - hs
+      color_mode: hs
+      brightness: 254
+      hs_color:
+      - 0
+      - 100
+      rgb_color:
+      - 255
+      - 0
+      - 0
+      xy_color:
+      - 0.701
+      - 0.299
+      friendly_name: E27 color
+      supported_features: 32
+      state: 'on'
+  icon: mdi:ceiling-light
+  metadata: {}
+- id: '1714261513453'
+  name: Dining lights
+  entities:
+    light.e14_dim:
+      supported_color_modes:
+      - brightness
+      friendly_name: E14 dim
+      supported_features: 32
+      state: unavailable
+    light.filament2:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: filament2
+      supported_features: 32
+      state: 'off'
+  icon: mdi:ceiling-light
+  metadata: {}

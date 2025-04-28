@@ -1,0 +1,56 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+homeassistant:
+    media_dirs:
+        media: /media
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+#Text to speech
+tts:
+  - platform: google_translate
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+http:
+  server_port: 8124
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - 192.168.86.0/24 # Example if your NGINX is on your local network
+  ip_ban_enabled: true # use this to enable auto IP ban
+  login_attempts_threshold: 3 # set the number of allowed login attempts
+recorder:
+  db_url: !secret mariadb
+  # purge_keep_days: 10   # default
+
+history:
+
+
+influxdb:
+  api_version: 2
+  ssl: false
+  host: !secret influxdb_host
+  port: 8086
+  token: !secret influxdb_token
+  organization: !secret influx_org
+  bucket: homeassistant
+  tags:
+    source: HomeAssistant
+  tags_attributes:
+    - friendly_name
+  default_measurement: units
+  ignore_attributes:
+    - icon
+  exclude:    # Customise to fit your needs
+    entities:
+      - zone.home
+    domains:
+      - persistent_notification
+      - person
+

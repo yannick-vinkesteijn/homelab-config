@@ -1,0 +1,5 @@
+include:
+  - system/docker-compose.yaml
+  - homeassistant/docker-compose.yaml
+  - media/docker-compose.yaml
+  - database/docker-compose.yaml
