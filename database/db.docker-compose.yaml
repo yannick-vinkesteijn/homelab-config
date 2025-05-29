@@ -1,10 +1,13 @@
+name: homelab-db
 services:
   mariadb:
     container_name: mariadb
     image: mariadb:latest
-    env_file: ../.env
+    # env_file: 
+    #   - /opt/homelab/.env
+    #   - /opt/homelab/.secrets/mysql.env
     environment:
-      - TZ=Europe/Amsterdam
+      - TZ=${TZ}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_HA_DATABASE}
       - MYSQL_USER=${MYSQL_HA_USER}
@@ -18,9 +21,11 @@ services:
   influxdb:
     container_name: influxdb
     image: influxdb
-    env_file: ../.env
+    # env_file: 
+    #   - /opt/homelab/.env
+    #   - /opt/homelab/.secrets/influx.env
     environment:
-      - TZ=Europe/Amsterdam
+      - TZ=${TZ}
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USER}
       - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}

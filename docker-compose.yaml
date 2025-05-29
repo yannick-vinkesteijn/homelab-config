@@ -1,5 +1,6 @@
 include:
-  - system/docker-compose.yaml
-  - homeassistant/docker-compose.yaml
-  - media/docker-compose.yaml
-  - database/docker-compose.yaml
+  - system/sys.docker-compose.yaml
+  - database/db.docker-compose.yaml
+  - homeassistant/hass.docker-compose.yaml
+  - media/media.docker-compose.yaml
+  - arr/arr.docker-compose.yaml

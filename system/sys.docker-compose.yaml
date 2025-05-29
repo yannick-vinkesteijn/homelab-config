@@ -1,0 +1,17 @@
+name: homelab-system
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    # env_file:
+    #   - /opt/homelab/.env
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/homelab/system/portainer:/data
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    restart: unless-stopped

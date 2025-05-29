@@ -1,0 +1,37 @@
+name: homelab-arr
+services:
+  qbittorrent:
+    image: ghcr.io/hotio/qbittorrent:latest
+    container_name: qbittorrent
+    hostname: qbittorrent.internal          # keeps DNS-style hostnames working inside the bridge
+    cap_add:
+      - NET_ADMIN                           # needed for WireGuard + firewall rules
+    devices:
+      - /dev/net/tun                        # only required if the WG kernel module is missing
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1  # required for policy-routing
+      - net.ipv6.conf.all.disable_ipv6=1    # disable v6 unless you really need it
+    # env_file: 
+    #   - /opt/homelab/.env
+    #   - /opt/homelab/.secrets/pia.env
+    environment:
+      VPN_ENABLED: "true"
+      VPN_PROVIDER: "pia"                   # container will fetch wg0.conf for you [oai_citation:0‡Hotio](https://hotio.dev/containers/qbittorrent/)
+      VPN_CONF: "wg0"
+      VPN_FIREWALL_TYPE: "auto"
+      VPN_PIA_PORT_FORWARD_PERSIST: "true"  # keep the same port until PIA retires it
+      VPN_AUTO_PORT_FORWARD: "true"         # container auto-requests a PF & patches qBittorrent  [oai_citation:1‡Hotio](https://hotio.dev/containers/qbittorrent/)
+      PRIVOXY_ENABLED: "false"
+      UNBOUND_ENABLED: "false"
+      VPN_HEALTHCHECK_ENABLED: "true"
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+      UMASK: "002"
+      TZ: "${TZ}"
+      WEBUI_PORTS: "8080/tcp,8080/udp"
+    volumes:
+      - /opt/homelab/arr/qbt/config:/config     # WireGuard files & qB settings live here
+      - /opt/homelab/arr/downloads:/data
+    ports:                                  # LAN-only Web UI
+      - "8999:8080"
+    restart: unless-stopped
