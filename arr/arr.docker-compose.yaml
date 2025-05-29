@@ -11,9 +11,6 @@ services:
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1  # required for policy-routing
       - net.ipv6.conf.all.disable_ipv6=1    # disable v6 unless you really need it
-    # env_file: 
-    #   - /opt/homelab/.env
-    #   - /opt/homelab/.secrets/pia.env
     environment:
       VPN_ENABLED: "true"
       VPN_PROVIDER: "pia"                   # container will fetch wg0.conf for you [oai_citation:0‡Hotio](https://hotio.dev/containers/qbittorrent/)
@@ -34,4 +31,84 @@ services:
       - /opt/homelab/arr/downloads:/data
     ports:                                  # LAN-only Web UI
       - "8999:8080"
+    restart: unless-stopped
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "9696:9696"
+    volumes:
+      - /opt/homelab/arr/prowlarr:/config
+    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8989:8989"
+    volumes:
+      - /opt/homelab/arr/sonarr:/config
+      - /opt/homelab/arr/downloads:/downloads
+      - /mnt/ext_x10p/media/tv_shows:/tv
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "7878:7878"
+    volumes:
+      - /opt/homelab/arr/radarr:/config
+      - /opt/homelab/arr/downloads:/downloads
+      - /mnt/ext_x10p/media/movies:/movies
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "6767:6767"
+    volumes:
+      - /opt/homelab/arr/bazarr:/config
+      - /mnt/ext_x10p/media/movies:/movies
+      - /mnt/ext_x10p/media/tv_shows:/tv
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /opt/homelab/arr/jellyseerr:/app/config
+    ports:
+      - "5055:5055"
     restart: unless-stopped
