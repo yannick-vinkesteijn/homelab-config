@@ -43,6 +43,8 @@ services:
     restart: unless-stopped
     # Required for mDNS to work correctly
     network_mode: host
+    environment:
+      MATTER_NETWORK_INTERFACE: wlxf0a731ceb4d1
     security_opt:
       # Needed for Bluetooth via dbus
       - apparmor:unconfined

@@ -21,14 +21,17 @@ services:
       PRIVOXY_ENABLED: "false"
       UNBOUND_ENABLED: "false"
       VPN_HEALTHCHECK_ENABLED: "true"
+      VPN_LAN_NETWORK: "${VPN_LAN_NETWORK}"
       PUID: "${PUID}"
       PGID: "${PGID}"
+      VPN_PIA_USER: "${VPN_PIA_USER}"  # PIA username
+      VPN_PIA_PASS: "${VPN_PIA_PASS}"  # PIA password, set in .env file
       UMASK: "002"
       TZ: "${TZ}"
       WEBUI_PORTS: "8080/tcp,8080/udp"
     volumes:
-      - /opt/homelab/arr/qbt/config:/config     # WireGuard files & qB settings live here
-      - /opt/homelab/arr/downloads:/data
+      - /opt/homelab/arr/qbt:/config     # WireGuard files & qB settings live here
+      - /mnt/ext_x10p/downloads:/downloads
     ports:                                  # LAN-only Web UI
       - "8999:8080"
     restart: unless-stopped
@@ -60,7 +63,7 @@ services:
       - "8989:8989"
     volumes:
       - /opt/homelab/arr/sonarr:/config
-      - /opt/homelab/arr/downloads:/downloads
+      - /mnt/ext_x10p/downloads:/downloads
       - /mnt/ext_x10p/media/tv_shows:/tv
     restart: unless-stopped
 
@@ -77,8 +80,8 @@ services:
       - "7878:7878"
     volumes:
       - /opt/homelab/arr/radarr:/config
-      - /opt/homelab/arr/downloads:/downloads
-      - /mnt/ext_x10p/media/movies:/movies
+      - /mnt/ext_x10p/downloads:/downloads
+      - /mnt/ext_x9/media/movies:/movies
     restart: unless-stopped
 
   bazarr:
@@ -94,7 +97,7 @@ services:
       - "6767:6767"
     volumes:
       - /opt/homelab/arr/bazarr:/config
-      - /mnt/ext_x10p/media/movies:/movies
+      - /mnt/ext_x9/media/movies:/movies
       - /mnt/ext_x10p/media/tv_shows:/tv
     restart: unless-stopped
 
@@ -112,3 +115,12 @@ services:
     ports:
       - "5055:5055"
     restart: unless-stopped
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    # use your existing network
+    networks:
+      - default
+    ports:
+      - "8191:8191"
