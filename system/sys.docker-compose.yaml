@@ -1,0 +1,28 @@
+name: homelab-system
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    # env_file:
+    #   - /opt/homelab/.env
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/homelab/system/portainer:/data
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    restart: unless-stopped
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ./homarr/appdata:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=${HOMARR_KEY}
+    ports:
+      - '7575:7575'

@@ -1,0 +1,33 @@
+name: homelab-media
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    volumes:
+      - /opt/homelab/media/jellyfin/config:/config
+      - /opt/homelab/media/jellyfin/cache:/cache
+      - type: bind
+        source: /mnt/ext_x10p/media
+        target: /media
+      - type: bind
+        source: /mnt/ext_x9/media
+        target: /media_x9
+    ports:
+      - "8096:8096"
+    restart: unless-stopped
+
+  filebrowser:
+    image: filebrowser/filebrowser
+    container_name: filebrowser
+    volumes:
+      - /mnt/ext_x10p:/srv/x10p
+      - /mnt/ext_x9:/srv/x9
+      - /opt/homelab/media/filebrowser/filebrowser.db:/database/filebrowser.db
+      - /opt/homelab/media/filebrowser/settings.json:/.filebrowser.json
+    # env_file:
+    #   - /opt/homelab/.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    ports:
+      - "8095:80"

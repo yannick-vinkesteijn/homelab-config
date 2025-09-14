@@ -1,0 +1,44 @@
+name: homelab-hass
+
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: ghcr.io/home-assistant/home-assistant:stable
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - /opt/homelab/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro
+      - /dev/serial/by-id:/dev/serial/by-id
+      - /opt/homelab/homeassistant/media:/media
+      - /run/dbus:/run/dbus:ro
+    devices:
+      - /dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20240124190206-if00:/dev/ttyACM0
+      - /dev/ttyS4:/dev/ttyS4
+      - /dev/ttyUSB0:/dev/ttyUSB0
+      - /dev/ttyUSB1:/dev/ttyUSB1
+      - /dev/ttyACM0:/dev/ttyACM0
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    depends_on:
+      - influxdb
+      - mariadb
+      - matter-server
+
+  matter-server:
+    image: ghcr.io/home-assistant-libs/python-matter-server:stable
+    container_name: matter-server
+    restart: unless-stopped
+    # Required for mDNS to work correctly
+    network_mode: host
+    security_opt:
+      # Needed for Bluetooth via dbus
+      - apparmor:unconfined
+    volumes:
+      # Create an .env file that sets the USERDIR environment variable.
+      - /opt/homelab/homeassistant/matter-server:/data/
+      # Required for Bluetooth via D-Bus
+      - /run/dbus:/run/dbus:ro
+    # If you adjust command line, make sure to pass the default CMD arguments too:
+    command: --storage-path /data --paa-root-cert-dir /data/credentials --bluetooth-adapter 0

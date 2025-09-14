@@ -1,0 +1,40 @@
+name: homelab-db
+
+services:
+  mariadb:
+    container_name: mariadb
+    image: mariadb:latest
+    environment:
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_HA_DATABASE}
+      - MYSQL_USER=${MYSQL_HA_USER}
+      - MYSQL_PASSWORD=${MYSQL_HA_PASSWORD}
+    volumes:
+      - /opt/homelab/database/mariadb:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:latest
+    environment:
+      - TZ=${TZ}
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      - GUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - /opt/homelab/database/influxdb/data:/var/lib/influxdb2
+      - /opt/homelab/database/influxdb/config:/etc/influxdb2
+    ports:
+      - "8086:8086"
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    restart: unless-stopped

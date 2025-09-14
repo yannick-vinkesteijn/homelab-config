@@ -1,0 +1,50 @@
+name: homelab-networking
+
+networks:
+  reverse_proxy:
+    name: reverse_proxy
+    driver: bridge
+    external: true
+
+services:
+  swag:
+    image: lscr.io/linuxserver/swag:latest
+    container_name: swag
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - URL=yourdomain.com
+      - SUBDOMAINS=wildcard
+      - VALIDATION=dns
+      - DNSPLUGIN=cloudflare
+    volumes:
+      - ./swag/config:/config
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+    networks:
+      - reverse_proxy
+
+  pangolin:
+    image: pangolin/pangolin:latest
+    container_name: pangolin
+    restart: unless-stopped
+    networks:
+      - reverse_proxy
+
+  adguardhome:
+    image: adguard/adguardhome:latest
+    container_name: adguardhome
+    volumes:
+      - ./adguard/work:/opt/adguardhome/work
+      - ./adguard/conf:/opt/adguardhome/conf
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - 3000:3000
+      - 80:80
+    restart: unless-stopped
+    networks:
+      - reverse_proxy

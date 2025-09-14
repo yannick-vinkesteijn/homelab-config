@@ -1,0 +1,142 @@
+name: homelab-arr
+services:
+  qbittorrent:
+    image: ghcr.io/hotio/qbittorrent:latest
+    container_name: qbittorrent
+    hostname: qbittorrent.internal          # keeps DNS-style hostnames working inside the bridge
+    cap_add:
+      - NET_ADMIN                           # needed for WireGuard + firewall rules
+    devices:
+      - /dev/net/tun                        # only required if the WG kernel module is missing
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1  # required for policy-routing
+      - net.ipv6.conf.all.disable_ipv6=1    # disable v6 unless you really need it
+    environment:
+      VPN_ENABLED: "true"
+      VPN_PROVIDER: "pia"                   # container will fetch wg0.conf for you [oai_citation:0‡Hotio](https://hotio.dev/containers/qbittorrent/)
+      VPN_CONF: "wg0"
+      VPN_FIREWALL_TYPE: "auto"
+      VPN_PIA_PORT_FORWARD_PERSIST: "true"  # keep the same port until PIA retires it
+      VPN_AUTO_PORT_FORWARD: "true"         # container auto-requests a PF & patches qBittorrent  [oai_citation:1‡Hotio](https://hotio.dev/containers/qbittorrent/)
+      PRIVOXY_ENABLED: "false"
+      UNBOUND_ENABLED: "false"
+      VPN_HEALTHCHECK_ENABLED: "true"
+      VPN_LAN_NETWORK: "${VPN_LAN_NETWORK}"
+      PUID: "${PUID}"
+      PGID: "${PGID}"
+      VPN_PIA_USER: "${VPN_PIA_USER}"  # PIA username
+      VPN_PIA_PASS: "${VPN_PIA_PASS}"  # PIA password, set in .env file
+      UMASK: "002"
+      TZ: "${TZ}"
+      WEBUI_PORTS: "8080/tcp,8080/udp"
+    volumes:
+      - /opt/homelab/arr/qbt:/config     # WireGuard files & qB settings live here
+      - /mnt/ext_x10p/downloads:/data/downloads
+    ports:                                  # LAN-only Web UI
+      - "8999:8080"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
+    ports:
+      - "9696:9696"
+    volumes:
+      - /opt/homelab/arr/prowlarr:/config
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+      - 2606:4700:4700::1111
+      - 2606:4700:4700::1001
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8989:8989"
+    volumes:
+      - /opt/homelab/arr/sonarr:/config
+      - /mnt/ext_x10p/downloads:/data/downloads
+      - /mnt/ext_x10p/media/tv_shows:/data/tv
+      - /mnt/ext_x9/media/tv:/data/tvx9
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "7878:7878"
+    volumes:
+      - /opt/homelab/arr/radarr:/config
+      - /mnt/ext_x10p/downloads:/data/downloads
+      - /mnt/ext_x9/media/movies:/data/movies
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "6767:6767"
+    volumes:
+      - /opt/homelab/arr/bazarr:/config
+      - /mnt/ext_x9/media/movies:/data/movies
+      - /mnt/ext_x10p/media/tv_shows:/data/tv
+      - /mnt/ext_x9/media/tv:/data/tvx9
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    # network_mode: "service:qbittorrent"
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /opt/homelab/arr/jellyseerr:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    # use your existing network
+    networks:
+      - default
+    ports:
+      - "8191:8191"
+    dns:
+      - 1.1.1.1    # Cloudflare IPv4
+      - 1.0.0.1    # Cloudflare IPv4 fallback
+      - 2606:4700:4700::1111  # Cloudflare IPv6
+      - 2606:4700:4700::1001
