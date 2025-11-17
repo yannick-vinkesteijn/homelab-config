@@ -6,6 +6,7 @@
 
 # Allow docker-compose files anywhere
 !*docker-compose.yaml
+!/docs/*.md
 
 # Allow everything under homeassistant/config/blueprints/
 # !homeassistant/config/blueprints/**

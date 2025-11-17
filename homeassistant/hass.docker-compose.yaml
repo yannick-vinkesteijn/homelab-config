@@ -6,6 +6,7 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     environment:
       - TZ=${TZ}
+    user: "${UID}:${GID}"
     volumes:
       - /opt/homelab/homeassistant/config:/config
       - /etc/localtime:/etc/localtime:ro
@@ -42,3 +43,18 @@ services:
       - /run/dbus:/run/dbus:ro
     # If you adjust command line, make sure to pass the default CMD arguments too:
     command: --storage-path /data --paa-root-cert-dir /data/credentials --bluetooth-adapter 0
+  
+  vscode:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: vscode
+    environment:
+      - PUID=${UID}
+      - PGID=${GID}
+      - TZ=${TZ}
+      - PASSWORD=${VSCODE_PASSWORD}
+    volumes:
+      - /opt/homelab/homeassistant/config:/config
+      - /opt/homelab/homeassistant/vscode:/data
+    ports:
+      - 8443:8443
+    restart: unless-stopped

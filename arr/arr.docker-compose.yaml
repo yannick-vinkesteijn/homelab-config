@@ -140,3 +140,19 @@ services:
       - 1.0.0.1    # Cloudflare IPv4 fallback
       - 2606:4700:4700::1111  # Cloudflare IPv6
       - 2606:4700:4700::1001
+
+  lidarr:
+    image: lscr.io/linuxserver/lidarr:latest
+    container_name: lidarr
+    depends_on: [qbittorrent]
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /opt/homelab/arr/lidarr:/config
+      - /mnt/ext_x10p/media/music:/data/music
+      - /mnt/ext_x10p/downloads:/data/downloads
+    ports:
+      - 8686:8686
+    restart: unless-stopped
