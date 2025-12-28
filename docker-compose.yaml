@@ -1,10 +1,7 @@
-networks:
-  proxy:
-    name: proxy
-    driver: bridge
 
 include:
   - system/sys.docker-compose.yaml
+  - network/network.docker-compose.yaml
   - database/db.docker-compose.yaml
   - homeassistant/hass.docker-compose.yaml
   - media/media.docker-compose.yaml

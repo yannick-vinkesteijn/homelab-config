@@ -14,11 +14,8 @@ services:
       - /opt/homelab/homeassistant/media:/media
       - /run/dbus:/run/dbus:ro
     devices:
-      - /dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20240124190206-if00:/dev/ttyACM0
-      - /dev/ttyS4:/dev/ttyS4
-      - /dev/ttyUSB0:/dev/ttyUSB0
-      - /dev/ttyUSB1:/dev/ttyUSB1
-      - /dev/ttyACM0:/dev/ttyACM0
+      - /dev/serial/by-id/usb-Nabu_Casa_ZBT-2_DCB4D90D67C8-if00
+      - /dev/serial/by-id/usb-ITEAD_SONOFF_Zigbee_3.0_USB_Dongle_Plus_V2_20240124190206-if00
     restart: unless-stopped
     privileged: true
     network_mode: host

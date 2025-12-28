@@ -1,7 +1,12 @@
 name: homelab-media
 services:
+
   jellyfin:
     image: jellyfin/jellyfin:latest
+    labels:
+      tsdproxy.enable: "true"
+      tsdproxy.name: "jellyfin"
+      tsdproxy.container_port: "8096"
     container_name: jellyfin
     volumes:
       - /opt/homelab/media/jellyfin/config:/config
@@ -15,6 +20,8 @@ services:
     ports:
       - "8096:8096"
     restart: unless-stopped
+    networks:
+      - default
 
   filebrowser:
     image: filebrowser/filebrowser
@@ -24,8 +31,6 @@ services:
       - /mnt/ext_x9:/srv/x9
       - /opt/homelab/media/filebrowser/filebrowser.db:/database/filebrowser.db
       - /opt/homelab/media/filebrowser/settings.json:/.filebrowser.json
-    # env_file:
-    #   - /opt/homelab/.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}

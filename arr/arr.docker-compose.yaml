@@ -113,9 +113,12 @@ services:
     restart: unless-stopped
 
   jellyseerr:
-    image: fallenbagel/jellyseerr:latest
+    image: ghcr.io/fallenbagel/jellyseerr:latest
     container_name: jellyseerr
-    # network_mode: "service:qbittorrent"
+    labels:
+      tsdproxy.enable: "true"
+      tsdproxy.name: "jellyseerr"
+      tsdproxy.container_port: "5055"
     depends_on: [qbittorrent]
     environment:
       - PUID=${PUID}
@@ -126,6 +129,9 @@ services:
     ports:
       - "5055:5055"
     restart: unless-stopped
+    networks:
+      - default
+
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr

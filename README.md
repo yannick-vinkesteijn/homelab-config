@@ -83,3 +83,7 @@ DIP_TOKEN=<OPTIONAL_TOKEN>
 
 IPv6 tooling writes to `/var/log/ipv6_prefix_monitor.log` and `/var/log/update_pihole_ipv6.log`.
 
+## Troubleshooting
+
+### Flashing Home Assistant connect ZBT-2 
+If you have trouble flashing the ZBT-2 through home assistant, you can use the web flashing tool <https://toolbox.openhomefoundation.org/home-assistant-connect-zbt-2/install/>
