@@ -55,6 +55,8 @@ Homelab configs, docker compose, etc.
 | `VPN_LAN_NETWORK` | LAN CIDR exposed through the VPN gateway. |
 | `HOMARR_KEY` | API key for Homarr widgets. |
 | `VSCODE_PASSWORD` | Password for the VS Code web UI. |
+| `NEWT_ID` | Newt site ID from Pangolin. |
+| `NEWT_SECRET` | Newt site secret from Pangolin. |
 
 `VPN_PIA_PREFERRED_REGION` is deprecated. Use `PREFERRED_REGION` instead to avoid script failures.
 
@@ -82,6 +84,27 @@ DIP_TOKEN=<OPTIONAL_TOKEN>
 4. Enable the IPv6 monitor using `sudo scripts/setup_ipv6_monitor.sh`.
 
 IPv6 tooling writes to `/var/log/ipv6_prefix_monitor.log` and `/var/log/update_pihole_ipv6.log`.
+
+## VPS & Pangolin
+
+Hetzner CX22 running [Pangolin](https://pangolin.dev) as a tunneled reverse proxy for publicly exposed services (Jellyfin, Jellyseerr). Hides the homelab's IP behind the VPS.
+
+See [docs/pangolin-setup.md](docs/pangolin-setup.md) for full setup details including VPS hardening, DNS, Newt configuration, and troubleshooting.
+
+## Where is Home Assistant?
+
+I started with Home Assistant docker however I found it to be unstable and difficult to manage. I switched to a dedicated server running Home Assistant OS, which has been rock solid. It also has the benefit of keeping Home Assistant separate from the rest of the stack, which is nice for security and stability.
+
+### Architecture
+```
+Internet → vinkels.dev → VPS (Pangolin/Traefik) → WireGuard tunnel → Homelab (Newt) → services
+```
+
+Services routed through Pangolin:
+- `social.vinkels.dev` → Mastodon (port 3000)
+- Future: Jellyfin, Jellyseerr, etc.
+
+Admin-only services stay on Tailscale (tsdproxy): Portainer, Sonarr, Radarr, etc.
 
 ## Troubleshooting
 

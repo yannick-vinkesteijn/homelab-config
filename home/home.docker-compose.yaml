@@ -1,0 +1,36 @@
+name: homelab-home
+
+services:
+  mealie:
+    container_name: mealie
+    image: ghcr.io/mealie-recipes/mealie:latest
+    restart: unless-stopped
+    ports:
+      - "9925:9000"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      # Default Credentials
+      - DEFAULT_EMAIL=${MEALIE_DEFAULT_EMAIL}
+      - DEFAULT_PASSWORD=${MEALIE_DEFAULT_PASSWORD}
+      # Base URL for web access
+      - BASE_URL=${MEALIE_BASE_URL:-http://localhost:9925}
+      # Database Settings - SQLite (default)
+      - DB_ENGINE=sqlite
+      # SMTP Settings (optional - for invites and password resets)
+      # - SMTP_HOST=
+      # - SMTP_PORT=587
+      # - SMTP_FROM_NAME=Mealie
+      # - SMTP_FROM_EMAIL=
+      # - SMTP_USER=
+      # - SMTP_PASSWORD=
+      # - SMTP_AUTH_STRATEGY=TLS
+    volumes:
+      - /opt/homelab/home/mealie/data:/app/data/
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9000/api/app/about"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

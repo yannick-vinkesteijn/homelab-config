@@ -1,5 +1,6 @@
 # Ignore everything
 *
+.env
 
 # Allow folders (so we can still find files inside them)
 !*/

@@ -1,16 +1,26 @@
 name: homelab-networking
 
 services:
-  tsdproxy:
-    image: ghcr.io/almeidapaulopt/tsdproxy:latest
-    container_name: tsdproxy
+  # tsdproxy:
+  #   image: ghcr.io/almeidapaulopt/tsdproxy:latest
+  #   container_name: tsdproxy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8080:8080"
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /opt/homelab/network/tsdproxy/data:/data
+  #     - /opt/homelab/network/tsdproxy/config:/config
+  #   environment:
+  #     TS_AUTHKEY: "${TAILSCALE_KEY}"
+  #     TS_HOSTNAME: "shire"
+  
+  newt:
+    image: fosrl/newt
+    container_name: newt
     restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /opt/homelab/network/tsdproxy/data:/data
-      - /opt/homelab/network/tsdproxy/config:/config
+    network_mode: host
     environment:
-      TS_AUTHKEY: "${TAILSCALE_KEY}"
-      TS_HOSTNAME: "shire"
+      - PANGOLIN_ENDPOINT=https://pangolin.vinkels.dev
+      - NEWT_ID=${NEWT_ID}
+      - NEWT_SECRET=${NEWT_SECRET}

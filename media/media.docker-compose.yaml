@@ -3,10 +3,10 @@ services:
 
   jellyfin:
     image: jellyfin/jellyfin:latest
-    labels:
-      tsdproxy.enable: "true"
-      tsdproxy.name: "jellyfin"
-      tsdproxy.container_port: "8096"
+    # labels:
+    #   tsdproxy.enable: "true"
+    #   tsdproxy.name: "jellyfin"
+    #   tsdproxy.container_port: "8096"
     container_name: jellyfin
     volumes:
       - /opt/homelab/media/jellyfin/config:/config

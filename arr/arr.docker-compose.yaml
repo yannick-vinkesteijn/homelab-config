@@ -74,7 +74,7 @@ services:
       - /opt/homelab/arr/sonarr:/config
       - /mnt/ext_x10p/downloads:/data/downloads
       - /mnt/ext_x10p/media/tv_shows:/data/tv
-      - /mnt/ext_x9/media/tv:/data/tvx9
+      - /mnt/ext_x9/media/tv_shows:/data/tvx9
     restart: unless-stopped
 
   radarr:
@@ -92,6 +92,7 @@ services:
       - /opt/homelab/arr/radarr:/config
       - /mnt/ext_x10p/downloads:/data/downloads
       - /mnt/ext_x9/media/movies:/data/movies
+      - /mnt/ext_x10p/media/movies:/data/moviex10p
     restart: unless-stopped
 
   bazarr:
@@ -108,17 +109,18 @@ services:
     volumes:
       - /opt/homelab/arr/bazarr:/config
       - /mnt/ext_x9/media/movies:/data/movies
+      - /mnt/ext_x10p/media/movies:/data/moviex10p
       - /mnt/ext_x10p/media/tv_shows:/data/tv
-      - /mnt/ext_x9/media/tv:/data/tvx9
+      - /mnt/ext_x9/media/tv_shows:/data/tvx9
     restart: unless-stopped
 
   jellyseerr:
     image: ghcr.io/fallenbagel/jellyseerr:latest
     container_name: jellyseerr
-    labels:
-      tsdproxy.enable: "true"
-      tsdproxy.name: "jellyseerr"
-      tsdproxy.container_port: "5055"
+    # labels:
+    #   tsdproxy.enable: "true"
+    #   tsdproxy.name: "jellyseerr"
+    #   tsdproxy.container_port: "5055"
     depends_on: [qbittorrent]
     environment:
       - PUID=${PUID}
