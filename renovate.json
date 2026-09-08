@@ -4,9 +4,9 @@
     "config:recommended"
   ],
   "docker-compose": {
-    "fileMatch": [
-      "(^|/)(?:docker-)?compose[^/]*\\.ya?ml$",
-      "(.*)yaml$"
+    "managerFilePatterns": [
+      "/(^|/)(?:docker-)?compose[^/]*\\.ya?ml$/",
+      "/(.*)yaml$/"
     ]
   }
 }
