@@ -1,7 +1,7 @@
 name: homelab-media
 services:
     jellyfin:
-        image: jellyfin/jellyfin:10.11.11
+        image: jellyfin/jellyfin:12.0.20260908-012347
         # labels:
         #   tsdproxy.enable: "true"
         #   tsdproxy.name: "jellyfin"
@@ -53,4 +53,5 @@ services:
         user: "${PUID}:${PGID}"
         environment:
             - TZ=Europe/Amsterdam
+            - JAVA_TOOL_OPTIONS=-Xmx1g
         restart: unless-stopped
