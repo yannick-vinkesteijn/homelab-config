@@ -47,7 +47,7 @@ services:
     depends_on:
       pangolin:
         condition: service_healthy
-    image: docker.io/fosrl/gerbil:1.4.0
+    image: docker.io/fosrl/gerbil:1.5.1
     ports:
       - 51820:51820/udp
       - 21820:21820/udp
