@@ -3,7 +3,7 @@ name: homelab-db
 services:
   mariadb:
     container_name: mariadb
-    image: mariadb:latest
+    image: mariadb:12.3.3
     environment:
       - TZ=${TZ}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
@@ -18,7 +18,7 @@ services:
 
   influxdb:
     container_name: influxdb
-    image: influxdb:latest
+    image: influxdb:2.9.1
     environment:
       - TZ=${TZ}
       - DOCKER_INFLUXDB_INIT_MODE=setup

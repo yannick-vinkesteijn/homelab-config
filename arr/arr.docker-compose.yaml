@@ -1,166 +1,190 @@
 name: homelab-arr
 services:
-  qbittorrent:
-    image: ghcr.io/hotio/qbittorrent:latest
-    container_name: qbittorrent
-    hostname: qbittorrent.internal          # keeps DNS-style hostnames working inside the bridge
-    cap_add:
-      - NET_ADMIN                           # needed for WireGuard + firewall rules
-    devices:
-      - /dev/net/tun                        # only required if the WG kernel module is missing
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1  # required for policy-routing
-      - net.ipv6.conf.all.disable_ipv6=1    # disable v6 unless you really need it
-    environment:
-      VPN_ENABLED: "true"
-      VPN_PROVIDER: "pia"                   # container will fetch wg0.conf for you [oai_citation:0‡Hotio](https://hotio.dev/containers/qbittorrent/)
-      VPN_CONF: "wg0"
-      VPN_FIREWALL_TYPE: "auto"
-      VPN_PIA_PORT_FORWARD_PERSIST: "true"  # keep the same port until PIA retires it
-      VPN_AUTO_PORT_FORWARD: "true"         # container auto-requests a PF & patches qBittorrent  [oai_citation:1‡Hotio](https://hotio.dev/containers/qbittorrent/)
-      PRIVOXY_ENABLED: "false"
-      UNBOUND_ENABLED: "false"
-      VPN_HEALTHCHECK_ENABLED: "true"
-      VPN_LAN_NETWORK: "${VPN_LAN_NETWORK}"
-      PUID: "${PUID}"
-      PGID: "${PGID}"
-      VPN_PIA_USER: "${VPN_PIA_USER}"  # PIA username
-      VPN_PIA_PASS: "${VPN_PIA_PASS}"  # PIA password, set in .env file
-      UMASK: "002"
-      TZ: "${TZ}"
-      WEBUI_PORTS: "8080/tcp,8080/udp"
-    volumes:
-      - /opt/homelab/arr/qbt:/config     # WireGuard files & qB settings live here
-      - /mnt/ext_x10p/downloads:/data/downloads
-    ports:                                  # LAN-only Web UI
-      - "8999:8080"
-    restart: unless-stopped
+    qbittorrent:
+        image: ghcr.io/hotio/qbittorrent:release-5.2.3
+        container_name: qbittorrent
+        hostname: qbittorrent.internal # keeps DNS-style hostnames working inside the bridge
+        cap_add:
+            - NET_ADMIN # needed for WireGuard + firewall rules
+        devices:
+            - /dev/net/tun # only required if the WG kernel module is missing
+        sysctls:
+            - net.ipv4.conf.all.src_valid_mark=1 # required for policy-routing
+            - net.ipv6.conf.all.disable_ipv6=1 # disable v6 unless you really need it
+        environment:
+            VPN_ENABLED: "true"
+            VPN_PROVIDER: "pia" # container will fetch wg0.conf for you [oai_citation:0‡Hotio](https://hotio.dev/containers/qbittorrent/)
+            VPN_CONF: "wg0"
+            VPN_FIREWALL_TYPE: "auto"
+            VPN_PIA_PORT_FORWARD_PERSIST: "true" # keep the same port until PIA retires it
+            VPN_AUTO_PORT_FORWARD: "true" # container auto-requests a PF & patches qBittorrent  [oai_citation:1‡Hotio](https://hotio.dev/containers/qbittorrent/)
+            PRIVOXY_ENABLED: "false"
+            UNBOUND_ENABLED: "false"
+            VPN_HEALTHCHECK_ENABLED: "true"
+            VPN_LAN_NETWORK: "${VPN_LAN_NETWORK}"
+            PUID: "${PUID}"
+            PGID: "${PGID}"
+            VPN_PIA_USER: "${VPN_PIA_USER}" # PIA username
+            VPN_PIA_PASS: "${VPN_PIA_PASS}" # PIA password, set in .env file
+            UMASK: "002"
+            TZ: "${TZ}"
+            WEBUI_PORTS: "8080/tcp,8080/udp"
+        volumes:
+            - /opt/homelab/arr/qbt:/config # WireGuard files & qB settings live here
+            - /mnt/ext_x10p/downloads:/data/downloads
+        ports: # LAN-only Web UI
+            - "8999:8080"
+        restart: unless-stopped
 
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    # network_mode: "service:qbittorrent"
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=1
-      - net.ipv6.conf.default.disable_ipv6=1
-    ports:
-      - "9696:9696"
-    volumes:
-      - /opt/homelab/arr/prowlarr:/config
-    restart: unless-stopped
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-      - 2606:4700:4700::1111
-      - 2606:4700:4700::1001
+    prowlarr:
+        image: lscr.io/linuxserver/prowlarr:2.5.2.5491-ls157
+        container_name: prowlarr
+        # network_mode: "service:qbittorrent"
+        depends_on: [qbittorrent]
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        sysctls:
+            - net.ipv6.conf.all.disable_ipv6=1
+            - net.ipv6.conf.default.disable_ipv6=1
+        ports:
+            - "9696:9696"
+        volumes:
+            - /opt/homelab/arr/prowlarr:/config
+        restart: unless-stopped
+        dns:
+            - 1.1.1.1
+            - 1.0.0.1
+            - 2606:4700:4700::1111
+            - 2606:4700:4700::1001
 
-  sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
-    # network_mode: "service:qbittorrent"
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    ports:
-      - "8989:8989"
-    volumes:
-      - /opt/homelab/arr/sonarr:/config
-      - /mnt/ext_x10p/downloads:/data/downloads
-      - /mnt/ext_x10p/media/tv_shows:/data/tv
-      - /mnt/ext_x9/media/tv_shows:/data/tvx9
-    restart: unless-stopped
+    sonarr:
+        image: lscr.io/linuxserver/sonarr:4.0.19.2979-ls322
+        container_name: sonarr
+        # network_mode: "service:qbittorrent"
+        depends_on: [qbittorrent]
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        ports:
+            - "8989:8989"
+        volumes:
+            - /opt/homelab/arr/sonarr:/config
+            - /mnt/ext_x10p/downloads:/data/downloads
+            - /mnt/ext_x10p/media/tv_shows:/data/tv
+            - /mnt/ext_x9/media/tv_shows:/data/tvx9
+            - /mnt/nvme1/media/tv_shows:/data/tv_nvme1
+        restart: unless-stopped
 
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    # network_mode: "service:qbittorrent"
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    ports:
-      - "7878:7878"
-    volumes:
-      - /opt/homelab/arr/radarr:/config
-      - /mnt/ext_x10p/downloads:/data/downloads
-      - /mnt/ext_x9/media/movies:/data/movies
-      - /mnt/ext_x10p/media/movies:/data/moviex10p
-    restart: unless-stopped
+    radarr:
+        image: lscr.io/linuxserver/radarr:6.3.0.10514-ls314
+        container_name: radarr
+        # network_mode: "service:qbittorrent"
+        depends_on: [qbittorrent]
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        ports:
+            - "7878:7878"
+        volumes:
+            - /opt/homelab/arr/radarr:/config
+            - /mnt/ext_x10p/downloads:/data/downloads
+            - /mnt/ext_x9/media/movies:/data/movies
+            - /mnt/ext_x10p/media/movies:/data/moviex10p
+            - /mnt/nvme2/media/movies:/data/movie_nvme2
+        restart: unless-stopped
 
-  bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
-    container_name: bazarr
-    # network_mode: "service:qbittorrent"
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    ports:
-      - "6767:6767"
-    volumes:
-      - /opt/homelab/arr/bazarr:/config
-      - /mnt/ext_x9/media/movies:/data/movies
-      - /mnt/ext_x10p/media/movies:/data/moviex10p
-      - /mnt/ext_x10p/media/tv_shows:/data/tv
-      - /mnt/ext_x9/media/tv_shows:/data/tvx9
-    restart: unless-stopped
+    bazarr:
+        image: lscr.io/linuxserver/bazarr:v1.6.0-ls361
+        container_name: bazarr
+        # network_mode: "service:qbittorrent"
+        depends_on: [qbittorrent]
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        ports:
+            - "6767:6767"
+        volumes:
+            - /opt/homelab/arr/bazarr:/config
+            - /mnt/ext_x9/media/movies:/data/movies
+            - /mnt/ext_x10p/media/movies:/data/moviex10p
+            - /mnt/ext_x10p/media/tv_shows:/data/tv
+            - /mnt/ext_x9/media/tv_shows:/data/tvx9
+            - /mnt/nvme1/media/tv_shows:/data/tv_nvme1
+            - /mnt/nvme2/media/movies:/data/movie_nvme2
+        restart: unless-stopped
 
-  jellyseerr:
-    image: ghcr.io/fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    # labels:
-    #   tsdproxy.enable: "true"
-    #   tsdproxy.name: "jellyseerr"
-    #   tsdproxy.container_port: "5055"
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - /opt/homelab/arr/jellyseerr:/app/config
-    ports:
-      - "5055:5055"
-    restart: unless-stopped
-    networks:
-      - default
+    flaresolverr:
+        image: ghcr.io/flaresolverr/flaresolverr:v3.5.0
+        container_name: flaresolverr
+        restart: unless-stopped
+        # use your existing network
+        networks:
+            - default
+        ports:
+            - "8191:8191"
+        dns:
+            - 1.1.1.1 # Cloudflare IPv4
+            - 1.0.0.1 # Cloudflare IPv4 fallback
+            - 2606:4700:4700::1111 # Cloudflare IPv6
+            - 2606:4700:4700::1001
 
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    restart: unless-stopped
-    # use your existing network
-    networks:
-      - default
-    ports:
-      - "8191:8191"
-    dns:
-      - 1.1.1.1    # Cloudflare IPv4
-      - 1.0.0.1    # Cloudflare IPv4 fallback
-      - 2606:4700:4700::1111  # Cloudflare IPv6
-      - 2606:4700:4700::1001
+    lidarr:
+        image: lscr.io/linuxserver/lidarr:3.1.0.4875-ls40
+        container_name: lidarr
+        depends_on: [qbittorrent]
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        volumes:
+            - /opt/homelab/arr/lidarr:/config
+            - /mnt/ext_x10p/media/music:/data/music
+            - /mnt/ext_x10p/downloads:/data/downloads
+            - /mnt/nvme1/media/music:/data/music_nvme1
+            - /mnt/nvme2/media/music:/data/music_nvme2
+        ports:
+            - 8686:8686
+        restart: unless-stopped
 
-  lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
-    container_name: lidarr
-    depends_on: [qbittorrent]
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - /opt/homelab/arr/lidarr:/config
-      - /mnt/ext_x10p/media/music:/data/music
-      - /mnt/ext_x10p/downloads:/data/downloads
-    ports:
-      - 8686:8686
-    restart: unless-stopped
+    seerr:
+        image: ghcr.io/seerr-team/seerr:v3.2.0
+        init: true
+        container_name: seerr
+        user: "${PUID}:${PGID}"
+        depends_on: [qbittorrent]
+        environment:
+            - LOG_LEVEL=debug
+            - TZ=${TZ}
+            - PORT=5055 #optional
+        ports:
+            - 5055:5055
+        volumes:
+            - /opt/homelab/arr/jellyseerr:/app/config
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
+            start_period: 20s
+            timeout: 3s
+            interval: 15s
+            retries: 3
+        restart: unless-stopped
+
+    kapowarr:
+        image: mrcas/kapowarr:v1.3.1
+        container_name: kapowarr
+        # user: "${PUID}:${PGID}"
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+        volumes:
+            - /opt/homelab/arr/kapowarr:/app/db
+            - /mnt/nvme2/comics_downloads:/app/temp_downloads
+            - /mnt/nvme2/comics:/comics
+        ports:
+            - 5656:5656
+        restart: unless-stopped

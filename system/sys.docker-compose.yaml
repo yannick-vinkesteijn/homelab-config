@@ -2,7 +2,7 @@ name: homelab-system
 services:
   portainer:
     container_name: portainer
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.45.0
     # env_file:
     #   - /opt/homelab/.env
     environment:
@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
   homarr:
     container_name: homarr
-    image: ghcr.io/homarr-labs/homarr:latest
+    image: ghcr.io/homarr-labs/homarr:v1.77.0
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration

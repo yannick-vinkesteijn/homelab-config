@@ -8,6 +8,8 @@
 # Allow docker-compose files anywhere
 !*docker-compose.yaml
 !/docs/*.md
+!/renovate.json
+!/vps/*
 
 # Allow everything under homeassistant/config/blueprints/
 # !homeassistant/config/blueprints/**
@@ -17,3 +19,5 @@
 # !homeassistant/config/scenes.yaml
 # !homeassistant/config/scripts.yaml
 !scripts/*
+scripts/comics/__pycache__/
+scripts/comics/

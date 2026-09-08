@@ -1,38 +1,56 @@
 name: homelab-media
 services:
+    jellyfin:
+        image: jellyfin/jellyfin:10.11.11
+        # labels:
+        #   tsdproxy.enable: "true"
+        #   tsdproxy.name: "jellyfin"
+        #   tsdproxy.container_port: "8096"
+        container_name: jellyfin
+        volumes:
+            - /opt/homelab/media/jellyfin/config:/config
+            - /opt/homelab/media/jellyfin/cache:/cache
+            - type: bind
+              source: /mnt/ext_x10p/media
+              target: /media
+            - type: bind
+              source: /mnt/ext_x9/media
+              target: /media_x9
+            - type: bind
+              source: /mnt/nvme1/media
+              target: /media_nvme1
+            - type: bind
+              source: /mnt/nvme2/media
+              target: /media_nvme2
+        ports:
+            - "8096:8096"
+        restart: unless-stopped
+        networks:
+            - default
 
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    # labels:
-    #   tsdproxy.enable: "true"
-    #   tsdproxy.name: "jellyfin"
-    #   tsdproxy.container_port: "8096"
-    container_name: jellyfin
-    volumes:
-      - /opt/homelab/media/jellyfin/config:/config
-      - /opt/homelab/media/jellyfin/cache:/cache
-      - type: bind
-        source: /mnt/ext_x10p/media
-        target: /media
-      - type: bind
-        source: /mnt/ext_x9/media
-        target: /media_x9
-    ports:
-      - "8096:8096"
-    restart: unless-stopped
-    networks:
-      - default
-
-  filebrowser:
-    image: filebrowser/filebrowser
-    container_name: filebrowser
-    volumes:
-      - /mnt/ext_x10p:/srv/x10p
-      - /mnt/ext_x9:/srv/x9
-      - /opt/homelab/media/filebrowser/filebrowser.db:/database/filebrowser.db
-      - /opt/homelab/media/filebrowser/settings.json:/.filebrowser.json
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-    ports:
-      - "8095:80"
+    filebrowser:
+        image: gtstef/filebrowser:1.5.3-stable
+        container_name: filebrowser
+        ports:
+            - 8900:80
+        restart: unless-stopped
+        user: "${PUID}:${PGID}"
+        volumes:
+            - /opt/homelab/media/filebrowser:/home/filebrowser/data
+            - /mnt/ext_x10p:/srv/x10p
+            - /mnt/ext_x9:/srv/x9
+            - /mnt/nvme1:/srv/nvme1
+            - /mnt/nvme2:/srv/nvme2
+    komga:
+        image: gotson/komga:1.26.3
+        container_name: komga
+        volumes:
+            - /opt/homelab/media/komga:/config
+            - /mnt/nvme2/comics:/data/comics
+            - /mnt/ext_x10p/media/books:/data/books
+        ports:
+            - 25600:25600
+        user: "${PUID}:${PGID}"
+        environment:
+            - TZ=Europe/Amsterdam
+        restart: unless-stopped

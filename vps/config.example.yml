@@ -1,0 +1,35 @@
+# To see all available options, please visit the docs:
+# https://docs.pangolin.net/
+#
+# Copy this to config.yml on the VPS (not tracked in git) and fill in the
+# placeholders below. `server.secret` is a live signing/session key — do not
+# commit a real value. Generate one with: openssl rand -base64 32
+
+gerbil:
+    start_port: 51820
+    base_endpoint: "pangolin.<your-domain>"
+
+app:
+    dashboard_url: "https://pangolin.<your-domain>"
+    log_level: "info"
+    telemetry:
+        anonymous_usage: true
+
+domains:
+    domain1:
+        base_domain: "<your-domain>"
+
+server:
+    secret: "<GENERATED_SECRET>"
+    cors:
+        origins: ["https://pangolin.<your-domain>"]
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+        allowed_headers: ["X-CSRF-Token", "Content-Type"]
+        credentials: false
+    maxmind_db_path: "./config/GeoLite2-Country.mmdb"
+
+flags:
+    require_email_verification: false
+    disable_signup_without_invite: true
+    disable_user_create_org: false
+    allow_raw_resources: true

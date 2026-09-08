@@ -17,11 +17,10 @@ Internet → VPS (Pangolin + Traefik) → WireGuard tunnel → Homelab (Newt) �
 ### Server details
 | Setting | Value |
 | --- | --- |
-| Provider | Hetzner Cloud |
+| Provider | Hetzner |
 | Plan | CX22 (2 vCPU, 4GB RAM) |
-| Location | Falkenstein |
 | OS | Ubuntu 24.04 |
-| Hostname | helms-deep |
+| Hostname | vps (self-chosen) |
 
 ### Initial hardening
 1. Create a non-root user with sudo access.
@@ -46,8 +45,8 @@ Point the base domain and a wildcard to the VPS IP:
 
 | Type | Name | Value |
 | --- | --- | --- |
-| A | `vinkels.dev` | `<VPS_IP>` |
-| A | `*.vinkels.dev` | `<VPS_IP>` |
+| A | `<your-domain>` | `<VPS_IP>` |
+| A | `*.<your-domain>` | `<VPS_IP>` |
 
 ## Pangolin Installation
 
@@ -56,12 +55,14 @@ curl -fsSL https://setup.pangolin.dev | sudo bash
 ```
 
 The installer asks for:
-- **Base domain:** `vinkels.dev`
+- **Base domain:** `<your-domain>`
 - **Admin email:** used for Let's Encrypt certificates
 - **Gerbil (WireGuard tunneling):** Yes
 - **CrowdSec:** Yes (recommended, can also be added later by re-running the installer)
 
-After installation, visit `https://pangolin.vinkels.dev` to complete setup.
+After installation, visit `https://pangolin.<your-domain>` to complete setup.
+
+The installer writes `/opt/pangolin/docker-compose.yml` and `/opt/pangolin/config/config.yml` on the VPS. Tracked copies live in this repo at [`vps/pangolin.docker-compose.yaml`](../vps/pangolin.docker-compose.yaml) and [`vps/config.example.yml`](../vps/config.example.yml) — the compose file is a straight copy (no secrets in it), but `config.yml` embeds a live `server.secret` directly (not via env var), so only a sanitized example is tracked. Generate a real one with `openssl rand -base64 32` and keep the actual `config.yml` on the VPS only, gitignored.
 
 ### Organization & Site
 
@@ -83,36 +84,36 @@ newt:
   restart: unless-stopped
   network_mode: host
   environment:
-    - PANGOLIN_ENDPOINT=https://pangolin.vinkels.dev
+    - PANGOLIN_ENDPOINT=${PANGOLIN_ENDPOINT}
     - NEWT_ID=${NEWT_ID}
     - NEWT_SECRET=${NEWT_SECRET}
 ```
 
 ### Why `network_mode: host`?
 
-Newt needs to reach local services by their host LAN IP (e.g., `192.168.86.66`). In the default Docker bridge network, Newt cannot route to the host's LAN IP — connections time out. Host networking gives Newt direct access to the host's network stack, so all local service IPs are reachable.
+Newt needs to reach local services by their host LAN IP (e.g., `<host-lan-ip>`). In the default Docker bridge network, Newt cannot route to the host's LAN IP — connections time out. Host networking gives Newt direct access to the host's network stack, so all local service IPs are reachable.
 
 ### Environment variables
 
-`NEWT_ID` and `NEWT_SECRET` are stored in the root `.env` file (gitignored). These are generated when creating a site in Pangolin. Regenerate them in Pangolin → Sites → (site name) if they are ever exposed.
+`PANGOLIN_ENDPOINT`, `NEWT_ID`, and `NEWT_SECRET` are stored in the root `.env` file (gitignored). `NEWT_ID`/`NEWT_SECRET` are generated when creating a site in Pangolin — regenerate them in Pangolin → Sites → (site name) if they are ever exposed. `PANGOLIN_ENDPOINT` is `https://pangolin.<your-domain>`.
 
 ## Adding Resources
 
 Resources are individual services exposed through Pangolin.
 
 1. In the Pangolin UI, go to **Resources → Add Resource**.
-2. Enter a name and subdomain (e.g., `jellyfin` creates `jellyfin.vinkels.dev`).
+2. Enter a name and subdomain (e.g., `jellyfin` creates `jellyfin.<your-domain>`).
 3. Select the site where the service runs.
 4. Choose **HTTP Resource**.
-5. Set the target to the service's LAN IP and port (e.g., `http://192.168.86.66:8096`).
+5. Set the target to the service's LAN IP and port (e.g., `http://<host-lan-ip>:8096`).
 6. Enable **Health Check** to monitor availability.
 
 ### Current resources
 
 | Service | Subdomain | Target |
 | --- | --- | --- |
-| Jellyfin | `jellyfin.vinkels.dev` | `http://192.168.86.66:8096` |
-| Jellyseerr | `jellyseerr.vinkels.dev` | `http://192.168.86.66:5055` |
+| Jellyfin | `jellyfin.<your-domain>` | `http://<host-lan-ip>:8096` |
+| Jellyseerr | `jellyseerr.<your-domain>` | `http://<host-lan-ip>:5055` |
 
 ### Authentication
 
@@ -241,18 +242,7 @@ Apply the same rules to each publicly exposed resource (Jellyfin, Jellyseerr, et
 
 The MaxMind database gets stale over time as IP-to-country mappings change. A cron job on the VPS updates it monthly:
 
-**Script:** `/opt/pangolin/update-geoip.sh`
-```bash
-#!/bin/bash
-set -e
-cd /opt/pangolin
-curl -sL -o GeoLite2-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz
-tar -xzf GeoLite2-Country.tar.gz
-mv GeoLite2-Country_*/GeoLite2-Country.mmdb config/
-rm -rf GeoLite2-Country.tar.gz GeoLite2-Country_*
-docker compose restart pangolin
-echo "$(date): GeoIP database updated" >> /var/log/geoip-update.log
-```
+**Script:** `/opt/pangolin/update-geoip.sh`, tracked in this repo at [`vps/update-geoip.sh`](../vps/update-geoip.sh).
 
 **Cron job:** `/etc/cron.d/geoip-update`
 ```

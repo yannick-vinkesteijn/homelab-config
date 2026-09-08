@@ -4,41 +4,57 @@ Homelab configs, docker compose, etc.
 
 ## Stack overview
 
+Included in the top-level `docker-compose.yaml` (`include:` list) and currently running:
+
 ### arr
 - **bazarr**
-- **jellyseerr**
+- **flaresolverr**
+- **kapowarr**
 - **lidarr**
 - **prowlarr**
-- **qbt**
+- **qbittorrent**
 - **radarr**
+- **seerr** (Overseerr/Jellyseerr-compatible replacement)
 - **sonarr**
 
 ### database
 - **influxdb**
 - **mariadb**
 
-### homeassistant
-- **homeassistant**
-- **matter-server**
-- **vscode**
-
 ### media
 - **filebrowser**
 - **jellyfin**
+- **komga**
 
 ### network
-- **swag**
-- **pangolin**
-- **adguardhome**
+- **newt** (Pangolin tunnel client)
+- commented out, not currently deployed: **tsdproxy**, **Technitium DNS server** (planned — see `.env` note below)
+
+### system
+- **homarr**
+- **portainer**
+
+### home
+- currently empty — **mealie** is defined but commented out in `home/home.docker-compose.yaml`
+
+Not included in the top-level orchestration (standalone, not deployed on this host):
+- **social/social.docker-compose.yaml** — Mastodon stack (db, web, streaming, sidekiq)
+- **vps/pangolin.docker-compose.yaml** — Pangolin + Traefik + CrowdSec + Gerbil, runs on the separate VPS, not the homelab host. See [docs/pangolin-setup.md](docs/pangolin-setup.md).
 
 ## Repository layout
-- `docker-compose.yaml` – top-level stack orchestration.
+- `docker-compose.yaml` – top-level stack orchestration, includes `system/`, `network/`, `database/`, `media/`, `arr/`, `home/`.
 - `arr/` – service definitions in `arr/arr.docker-compose.yaml`.
 - `database/` – databases in `database/db.docker-compose.yaml`.
-- `homeassistant/` – HA stack in `homeassistant/hass.docker-compose.yaml`.
 - `media/` – media services in `media/media.docker-compose.yaml`.
 - `network/` – perimeter services in `network/network.docker-compose.yaml`.
+- `system/` – host-management services in `system/sys.docker-compose.yaml`.
+- `home/` – home-related services in `home/home.docker-compose.yaml` (currently none active).
+- `social/` – standalone Mastodon stack, not part of the top-level orchestration.
+- `vps/` – Pangolin stack that runs on the separate VPS, not part of the top-level orchestration. `config.example.yml` is a sanitized template — the real `config.yml` (with a live secret) stays on the VPS only, gitignored.
 - `scripts/` – automation helpers.
+- `docs/` – setup guides and troubleshooting notes.
+
+Home Assistant is not run from this repo — see "Where is Home Assistant?" below.
 
 ## Environment files
 
@@ -46,17 +62,20 @@ Homelab configs, docker compose, etc.
 | Variable | Description |
 | --- | --- |
 | `PUID` / `PGID` | Runtime user and group IDs for most containers. |
-| `UID` / `GID` | System user and group IDs consumed by `homeassistant/hass.docker-compose.yaml`. |
 | `TZ` | Time zone, for example `America/New_York`. |
-| `INFLUXDB_USER`, `INFLUXDB_PASSWORD`, `INFLUXDB_ORG`, `INFLUXDB_BUCKET`, `INFLUXDB_ADMIN_TOKEN` | InfluxDB credentials. |
-| `MYSQL_ROOT_PASSWORD`, `MYSQL_HA_DATABASE`, `MYSQL_HA_USER`, `MYSQL_HA_PASSWORD` | MariaDB and Home Assistant database configuration. |
+| `INFLUXDB_USER`, `INFLUXDB_PASSWORD`, `INFLUXDB_ORG`, `INFLUXDB_BUCKET` | InfluxDB credentials. |
+| `MYSQL_ROOT_PASSWORD`, `MYSQL_HA_DATABASE`, `MYSQL_HA_USER`, `MYSQL_HA_PASSWORD` | MariaDB credentials and database configuration. |
+| `VPN_PIA_USER`, `VPN_PIA_PASS` | PIA VPN credentials for qBittorrent. |
+| `VPN_LAN_NETWORK` | LAN CIDR exposed through the VPN gateway. |
 | `PREFERRED_REGION` | Preferred PIA region consumed by `scripts/get_pia_wireguard_conf.sh`. |
 | `DIP_TOKEN` *(optional)* | Dedicated IP token for PIA, defaults to `none`. |
-| `VPN_LAN_NETWORK` | LAN CIDR exposed through the VPN gateway. |
 | `HOMARR_KEY` | API key for Homarr widgets. |
-| `VSCODE_PASSWORD` | Password for the VS Code web UI. |
+| `PANGOLIN_ENDPOINT` | Pangolin server URL, e.g. `https://pangolin.<your-domain>`. |
 | `NEWT_ID` | Newt site ID from Pangolin. |
 | `NEWT_SECRET` | Newt site secret from Pangolin. |
+| `MEALIE_DEFAULT_EMAIL`, `MEALIE_DEFAULT_PASSWORD`, `MEALIE_BASE_URL` *(optional)* | Only used if the commented-out `mealie` service in `home/home.docker-compose.yaml` is enabled. |
+| `TAILSCALE_KEY`, `TAILSCALE_HOSTNAME` | Only used if the commented-out `tsdproxy` service in `network/network.docker-compose.yaml` is enabled. |
+| `DNS_SERVER_ADMIN_PASSWORD`, `DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PASSWORD` | Only used if the commented-out Technitium `dns-server` service in `network/network.docker-compose.yaml` is enabled. |
 
 `VPN_PIA_PREFERRED_REGION` is deprecated. Use `PREFERRED_REGION` instead to avoid script failures.
 
@@ -71,11 +90,10 @@ DIP_TOKEN=<OPTIONAL_TOKEN>
 ```
 
 ## Scripts
-- `scripts/detect_ipv6_prefix_change.sh` – logs IPv6 prefix changes and triggers PIA updates.
+- `scripts/detect_ipv6_prefix_change.sh` – logs IPv6 prefix changes on the WAN interface.
 - `scripts/setup_ipv6_monitor.sh` – installs the systemd service and timer wrapper for the detector.
-- `scripts/update_pihole_ipv6.sh` – rewrites Pi-hole IPv6 records and restarts the container.
-- `scripts/set-static-ula.sh` – idempotently adds a static ULA address to the host.
 - `scripts/get_pia_wireguard_conf.sh` – fetches WireGuard configuration into `.secrets/pia.conf`.
+- `scripts/setup_nvme.sh` – one-time partition/format/mount for the NVMe enclosure, see [docs/nvme-setup-guide.md](docs/nvme-setup-guide.md).
 
 ## Usage
 1. Populate `.env` and `.secrets/pia.env` with the values listed above.
@@ -95,13 +113,15 @@ See [docs/pangolin-setup.md](docs/pangolin-setup.md) for full setup details incl
 
 I started with Home Assistant docker however I found it to be unstable and difficult to manage. I switched to a dedicated server running Home Assistant OS, which has been rock solid. It also has the benefit of keeping Home Assistant separate from the rest of the stack, which is nice for security and stability.
 
+The main driver was Docker's flaky USB passthrough for the Zigbee/Matter antennas (ZBT-2, Sonoff dongle) — device paths would drop or shift on container restart/host reboot, causing intermittent disconnects. Running HAOS directly on dedicated hardware avoids that entirely.
+
 ### Architecture
 ```
-Internet → vinkels.dev → VPS (Pangolin/Traefik) → WireGuard tunnel → Homelab (Newt) → services
+Internet → <your-domain> → VPS (Pangolin/Traefik) → WireGuard tunnel → Homelab (Newt) → services
 ```
 
 Services routed through Pangolin:
-- `social.vinkels.dev` → Mastodon (port 3000)
+- `social.<your-domain>` → Mastodon (port 3000)
 - Future: Jellyfin, Jellyseerr, etc.
 
 Admin-only services stay on Tailscale (tsdproxy): Portainer, Sonarr, Radarr, etc.
