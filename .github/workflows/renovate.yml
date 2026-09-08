@@ -1,0 +1,16 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # weekly, Monday 06:00 UTC
+  workflow_dispatch: # allows manual trigger from the Actions tab
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: renovatebot/github-action@v46.2.6
+        with:
+          configurationFile: renovate.json
+          token: '${{ secrets.RENOVATE_TOKEN }}'

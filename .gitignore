@@ -10,6 +10,7 @@
 !/docs/*.md
 !/renovate.json
 !/vps/*
+!/.github/workflows/*
 
 # Allow everything under homeassistant/config/blueprints/
 # !homeassistant/config/blueprints/**
