@@ -24,7 +24,7 @@ services:
         - lapi
         - status
       timeout: 5s
-    image: docker.io/crowdsecurity/crowdsec:latest
+    image: docker.io/crowdsecurity/crowdsec:v1.8.1
     labels:
       - traefik.enable=false
     ports:

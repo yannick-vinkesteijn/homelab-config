@@ -221,6 +221,10 @@ If `sudo systemctl status crowdsec-firewall-bouncer` shows "bouncer stream halte
 2. Update the API key in `/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml`.
 3. Restart: `sudo systemctl restart crowdsec-firewall-bouncer`.
 
+### Known issue: Komga traffic trips a ban
+
+Komga's traffic pattern through Pangolin/Traefik has triggered a CrowdSec ban on my own IP before (likely one of the `crowdsecurity/traefik` or `crowdsecurity/appsec-generic-rules` scenarios misfiring on Komga's request volume or URL-encoded book paths — not confirmed). Current workaround is an IP allowlist exception for my own IP in CrowdSec (`cscli decisions add`/whitelist, or via the console). This is a workaround, not a fix — the actual scenario causing the false positive hasn't been identified yet. Revisit by checking `cscli alerts list` / `cscli decisions list` next time it happens to find which scenario fired.
+
 ### Privacy
 
 CrowdSec sends minimal signal data to its central API (attacker IPs, triggered scenarios, timestamps). It does **not** send traffic content, URLs, or user data. In return, you receive the community blocklist. This can be disabled for local-only operation if needed.
