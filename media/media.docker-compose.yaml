@@ -22,6 +22,10 @@ services:
             - type: bind
               source: /mnt/nvme2/media
               target: /media_nvme2
+        devices:
+            - /dev/dri/renderD128:/dev/dri/renderD128
+        group_add:
+            - "991" # render group on host, grants access to /dev/dri
         ports:
             - "8096:8096"
         restart: unless-stopped
@@ -41,6 +45,36 @@ services:
             - /mnt/ext_x9:/srv/x9
             - /mnt/nvme1:/srv/nvme1
             - /mnt/nvme2:/srv/nvme2
+    navidrome:
+        image: deluan/navidrome:0.63.2
+        container_name: navidrome
+        user: "${PUID}:${PGID}"
+        environment:
+            - ND_SCANSCHEDULE=1h
+            - ND_LOGLEVEL=info
+            - ND_LISTENBRAINZ_BASEURL=http://maloja:42010/apis/listenbrainz/1/
+            - TZ=Europe/Amsterdam
+        volumes:
+            - /opt/homelab/media/navidrome/data:/data
+            - /mnt/ext_x10p/media/music:/music
+            - /mnt/nvme1/media/music:/music_nvme1
+            - /mnt/nvme2/media/music:/music_nvme2
+        ports:
+            - "4533:4533"
+        restart: unless-stopped
+
+    maloja:
+        image: krateng/maloja:3.2.6
+        container_name: maloja
+        environment:
+            - MALOJA_DATA_DIRECTORY=/data
+            - TZ=Europe/Amsterdam
+        volumes:
+            - /opt/homelab/media/maloja/data:/data
+        ports:
+            - "42010:42010"
+        restart: unless-stopped
+
     komga:
         image: gotson/komga:1.26.3
         container_name: komga
