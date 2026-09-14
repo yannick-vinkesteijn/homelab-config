@@ -174,7 +174,7 @@ services:
         restart: unless-stopped
 
     kapowarr:
-        image: mrcas/kapowarr:v1.3.1
+        image: mrcas/kapowarr:v1.3.2
         container_name: kapowarr
         # user: "${PUID}:${PGID}"
         environment:
