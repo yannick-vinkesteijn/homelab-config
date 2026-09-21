@@ -2,7 +2,7 @@ name: homelab-system
 services:
   portainer:
     container_name: portainer
-    image: portainer/portainer-ce:2.45.0
+    image: portainer/portainer-ce:2.45.1
     # env_file:
     #   - /opt/homelab/.env
     environment:
