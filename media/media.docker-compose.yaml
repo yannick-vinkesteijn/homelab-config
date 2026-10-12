@@ -64,7 +64,7 @@ services:
         restart: unless-stopped
 
     maloja:
-        image: krateng/maloja:3.2.6
+        image: krateng/maloja:3.2.7
         container_name: maloja
         environment:
             - MALOJA_DATA_DIRECTORY=/data
