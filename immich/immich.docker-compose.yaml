@@ -1,0 +1,69 @@
+name: homelab-immich
+# Based on the official compose file of Immich v3.2.4:
+# https://github.com/immich-app/immich/releases/download/v3.2.4/docker-compose.yml
+# On upgrades: check the release notes and diff against the new upstream file
+# (postgres/valkey image digests and env vars change occasionally).
+services:
+    immich-server:
+        image: ghcr.io/immich-app/immich-server:v3.2.4
+        container_name: immich-server
+        user: "${PUID}:${PGID}"
+        environment:
+            - TZ=${TZ}
+            - DB_HOSTNAME=immich-postgres
+            - DB_USERNAME=postgres
+            - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+            - DB_DATABASE_NAME=immich
+            - REDIS_HOSTNAME=immich-redis
+        volumes:
+            - /mnt/nvme1/immich/library:/data
+            - /etc/localtime:/etc/localtime:ro
+        # Intel Quick Sync (UHD 630) for video transcoding, same as jellyfin
+        devices:
+            - /dev/dri:/dev/dri
+        group_add:
+            - "991" # render group on host, grants access to /dev/dri
+        ports:
+            - "2283:2283"
+        depends_on:
+            - immich-redis
+            - immich-postgres
+        restart: unless-stopped
+        healthcheck:
+            disable: false
+
+    immich-machine-learning:
+        # CPU only (i3-8100B). Swap to the -openvino tag + /dev/dri if CPU turns out too slow.
+        image: ghcr.io/immich-app/immich-machine-learning:v3.2.4
+        container_name: immich-machine-learning
+        user: "${PUID}:${PGID}"
+        environment:
+            - TZ=${TZ}
+            - MPLCONFIGDIR=/cache/matplotlib
+        volumes:
+            - /opt/homelab/immich/model-cache:/cache
+        restart: unless-stopped
+        healthcheck:
+            disable: false
+
+    immich-redis:
+        image: docker.io/valkey/valkey:9@sha256:70739f85ad2ee01a726a965584a0f94895f01b0c60b3cc8b0aeef11eaa6888cf
+        container_name: immich-redis
+        healthcheck:
+            test: redis-cli ping | grep -q PONG || exit 1
+        restart: unless-stopped
+
+    immich-postgres:
+        image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+        container_name: immich-postgres
+        environment:
+            POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD}
+            POSTGRES_USER: postgres
+            POSTGRES_DB: immich
+            POSTGRES_INITDB_ARGS: '--data-checksums'
+        volumes:
+            - /mnt/nvme1/immich/postgres:/var/lib/postgresql/data
+        shm_size: 128mb
+        restart: unless-stopped
+        healthcheck:
+            disable: false

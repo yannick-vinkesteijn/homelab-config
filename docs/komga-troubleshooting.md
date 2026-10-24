@@ -64,6 +64,41 @@ Current state (2026-09-08):
 | Books   | `0QFH1XH7ZW3ZF` | `true`                 | Stable library, no ongoing reorg |
 | Comics  | `0QFH29AVBW0VJ` | `false`                | Still has an unfinished manual reorg (see [[project_comics_library_cleanup]] / `scripts/comics/HANDOVER.md` Session 4) — a scan mid-move could silently delete records still needed. Flip on once that cleanup is finished. |
 
+## One-time empty-trash runs (not the persistent setting)
+
+`POST /api/v1/libraries/<id>/empty-trash` does the same cleanup as the Web UI
+button, as a one-off — safe to use any time you've just fixed specific
+files and know exactly why their old book records are stale, without
+flipping the persistent `emptyTrashAfterScan` setting (still `false` on
+Comics, per the table above — that decision hasn't changed). Used
+2026-09-20 after fixing several multi-issue "bundle zip" files (Wolverine,
+X-Force, Love Unlimited — see `AGENTS.md`'s "Comparing comic archives"
+section) whose old zip-pointing book records lingered as `ERROR` /
+"Unavailable" in Komga's UI even after the replacement individual files
+were in place and correctly scanned. Confirmed clean via `GET
+/api/v1/books?media_status=ERROR` returning 0 afterward.
+
+## Infinity Comics need `readingDirection: WEBTOON`, not the default
+
+Marvel's "Infinity Comic" digital-first titles (X-Men Unlimited Infinity
+Comic, Love Unlimited Infinity Comic, Marvel's Voices Infinity Comic, etc.)
+are natively a continuous vertical-scroll format — a single speech bubble
+or panel is routinely split across the boundary between what become two
+separate page-images once packaged as a CBZ. Komga's default paged reading
+mode shows a hard break at every page boundary, which visibly cuts off
+that split content — looks like a rendering bug, isn't one; it's a reading
+mode mismatch.
+
+Fix per series: `PATCH /api/v1/series/<id>/metadata {"readingDirection":
+"WEBTOON"}` (other valid values: `LEFT_TO_RIGHT`, `RIGHT_TO_LEFT`,
+`VERTICAL` — check current value first via `GET
+/api/v1/series/<id>/metadata`, it's often just an empty string, i.e.
+unset/default, not explicitly wrong). This is series-level, so it covers
+every issue in that series going forward, not just existing ones — no need
+to redo it as new issues of the same series download. `readingDirectionLock`
+was left `false` (not force-locked) since nothing observed so far resets
+it on a normal scan; revisit if it ever reverts unexpectedly.
+
 ## Related
 
 - `scripts/comics/HANDOVER.md` — Session 4 handover, the reorg that caused this batch of stale entries

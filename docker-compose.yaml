@@ -2,7 +2,7 @@
 include:
   - system/sys.docker-compose.yaml
   - network/network.docker-compose.yaml
-  - database/db.docker-compose.yaml
   - media/media.docker-compose.yaml
   - arr/arr.docker-compose.yaml
   - home/home.docker-compose.yaml
+  - immich/immich.docker-compose.yaml

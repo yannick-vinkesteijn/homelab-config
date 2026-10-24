@@ -37,7 +37,7 @@ services:
         restart: unless-stopped
 
     prowlarr:
-        image: lscr.io/linuxserver/prowlarr:2.5.2.5491-ls157
+        image: lscr.io/linuxserver/prowlarr:2.6.5.5623-ls163
         container_name: prowlarr
         # network_mode: "service:qbittorrent"
         depends_on: [qbittorrent]
@@ -143,10 +143,8 @@ services:
             - TZ=${TZ}
         volumes:
             - /opt/homelab/arr/lidarr:/config
-            - /mnt/ext_x10p/media/music:/data/music
+            - /mnt/nvme2/media/music:/data/music
             - /mnt/ext_x10p/downloads:/data/downloads
-            - /mnt/nvme1/media/music:/data/music_nvme1
-            - /mnt/nvme2/media/music:/data/music_nvme2
         ports:
             - 8686:8686
         restart: unless-stopped

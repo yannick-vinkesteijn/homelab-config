@@ -2,10 +2,6 @@ name: homelab-media
 services:
     jellyfin:
         image: jellyfin/jellyfin:12.0.20260908-012347
-        # labels:
-        #   tsdproxy.enable: "true"
-        #   tsdproxy.name: "jellyfin"
-        #   tsdproxy.container_port: "8096"
         container_name: jellyfin
         volumes:
             - /opt/homelab/media/jellyfin/config:/config
@@ -53,12 +49,13 @@ services:
             - ND_SCANSCHEDULE=1h
             - ND_LOGLEVEL=info
             - ND_LISTENBRAINZ_BASEURL=http://maloja:42010/apis/listenbrainz/1/
+            - ND_LASTFM_ENABLED=true
+            - ND_LASTFM_APIKEY=${ND_LASTFM_APIKEY}
+            - ND_LASTFM_SECRET=${ND_LASTFM_SECRET}
             - TZ=Europe/Amsterdam
         volumes:
             - /opt/homelab/media/navidrome/data:/data
-            - /mnt/ext_x10p/media/music:/music
-            - /mnt/nvme1/media/music:/music_nvme1
-            - /mnt/nvme2/media/music:/music_nvme2
+            - /mnt/nvme2/media/music:/music
         ports:
             - "4533:4533"
         restart: unless-stopped

@@ -25,21 +25,31 @@ These are included in the top-level `docker-compose.yaml` and currently running:
 - **filebrowser**
 - **jellyfin**
 - **komga**
+- **maloja** (scrobble/stats tracker, feeds navidrome's ListenBrainz-compatible endpoint)
+- **navidrome** (music streaming server)
 
 ### network
 - **newt** (Pangolin tunnel client)
-- **tsdproxy** and the **Technitium DNS server** are commented out and not deployed yet. Technitium is the plan, see the `.env` table below.
 
 ### system
 - **homarr**
 - **portainer**
 
-### home
-- Nothing active right now. **mealie** is defined here but commented out in `home/home.docker-compose.yaml`.
+### immich
+- **immich** (server, machine-learning, valkey, postgres), photo library on `/mnt/nvme1/immich`. LAN only for now, see Roadmap.
 
-These aren't part of the top-level orchestration and don't run on this host:
+## Roadmap
+
+- **tsdproxy** and the **Technitium DNS server** are commented out and not deployed yet. Technitium is the plan — see the `.env` table below.
+- **mealie** is commented out in `home/home.docker-compose.yaml`, not deployed yet.
+- **TODO: central login with 2FA (Pocket ID, OIDC)**, in `system/`, exposed as `auth.<your-domain>` through Pangolin with SSO off. Pangolin's own SSO isn't used because it breaks API and mobile clients.
+  - Connect apps with built-in OIDC: Immich, Portainer, Homarr, Komga, Filebrowser. Jellyfin later via the SSO plugin.
+  - Navidrome, the *arr apps and qBittorrent don't support OIDC and keep their own login.
+  - Only after that: expose Immich as `photos.<your-domain>` and Navidrome as `music.<your-domain>`. Until then, Immich stays LAN-only (`http://<host-lan-ip>:2283`).
+
+These run outside the top-level orchestration and aren't on this host:
 - `social/social.docker-compose.yaml`: the Mastodon stack (db, web, streaming, sidekiq).
-- `vps/pangolin.docker-compose.yaml`: Pangolin, Traefik, CrowdSec, and Gerbil. Runs on the separate VPS, not here. See [docs/pangolin-setup.md](docs/pangolin-setup.md).
+- `vps/pangolin.docker-compose.yaml`: Pangolin, Traefik, CrowdSec, and Gerbil — runs on the separate VPS. See [docs/pangolin-setup.md](docs/pangolin-setup.md).
 
 ## Repository layout
 - `docker-compose.yaml`: top-level orchestration. Includes `system/`, `network/`, `database/`, `media/`, `arr/`, and `home/`.
@@ -124,7 +134,10 @@ Internet → <your-domain> → VPS (Pangolin/Traefik) → WireGuard tunnel → H
 
 Services routed through Pangolin:
 - `social.<your-domain>`: Mastodon, port 3000.
-- Future: Jellyfin, Jellyseerr, etc.
+- `jellyfin.<your-domain>`: Jellyfin, port 8096.
+- `jellyseerr.<your-domain>`: Jellyseerr (seerr), port 5055.
+
+See [docs/pangolin-setup.md](docs/pangolin-setup.md) for the full resource list and setup steps.
 
 Everything else (Portainer, Sonarr, Radarr, etc.) is local network only. No Tailscale or other remote-access layer right now, just Pangolin for the services that need to be public.
 

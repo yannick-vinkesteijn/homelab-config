@@ -11,6 +11,9 @@
 !/renovate.json
 !/vps/*
 !/.github/workflows/*
+!/AGENTS.md
+!/README.md
+!justfile
 
 # Allow everything under homeassistant/config/blueprints/
 # !homeassistant/config/blueprints/**

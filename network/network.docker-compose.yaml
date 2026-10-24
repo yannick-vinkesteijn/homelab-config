@@ -25,6 +25,9 @@ services:
             - NEWT_ID=${NEWT_ID}
             - NEWT_SECRET=${NEWT_SECRET}
 
+volumes:
+    config:
+    logs:
     # dns-server:
     #     container_name: dns-server
     #     hostname: dns-server
@@ -77,7 +80,3 @@ services:
     #     restart: unless-stopped
     #     sysctls:
     #         - net.ipv4.ip_local_port_range=1024 65535 #remove when using "host" network mode
-
-volumes:
-    config:
-    logs:
