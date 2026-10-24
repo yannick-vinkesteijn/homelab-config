@@ -47,7 +47,7 @@ services:
     depends_on:
       pangolin:
         condition: service_healthy
-    image: docker.io/fosrl/gerbil:1.4.0
+    image: docker.io/fosrl/gerbil:1.5.2
     ports:
       - 51820:51820/udp
       - 21820:21820/udp
@@ -74,7 +74,7 @@ services:
         - -f
         - http://localhost:3001/api/v1/
       timeout: 10s
-    image: docker.io/fosrl/pangolin:1.18.3
+    image: docker.io/fosrl/pangolin:1.25.3
     restart: unless-stopped
     volumes:
       - ./config:/app/config
@@ -87,7 +87,7 @@ services:
         condition: service_healthy
       pangolin:
         condition: service_healthy
-    image: docker.io/traefik:v3.6
+    image: docker.io/traefik:v3.7.16
     network_mode: service:gerbil
     restart: unless-stopped
     volumes:
