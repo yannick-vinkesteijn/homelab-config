@@ -25,3 +25,6 @@
 !scripts/*
 scripts/comics/__pycache__/
 scripts/comics/
+
+# Generated runtime data
+/media/maloja/
