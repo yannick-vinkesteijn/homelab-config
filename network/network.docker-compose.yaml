@@ -16,7 +16,7 @@ services:
     #     TS_HOSTNAME: "${TAILSCALE_HOSTNAME}"
 
     newt:
-        image: fosrl/newt:1.18.1
+        image: fosrl/newt:1.19.0
         container_name: newt
         restart: unless-stopped
         network_mode: host
