@@ -132,6 +132,34 @@ appearing. Existing auto-created ones from before the setting change don't
 disappear on their own — delete them explicitly (`DELETE
 /api/v1/readlists/{id}`) once.
 
+## Shelfmark (books, arr/arr.docker-compose.yaml)
+
+Ebook search/download (Anna's Archive/libgen) writing straight into
+`/mnt/ext_x10p/media/books`, which is Komga's "Books" library (hourly
+scan) — no separate import step. Port 8084, exposed via Pangolin.
+Readarr is dead upstream; this replaced it rather than a Readarr fork
+because the library is technical PDFs, which torrent indexers rarely have.
+
+Non-obvious bits, all verified on v1.7.0:
+- `SUPPORTED_FORMATS` defaults to epub/mobi/azw3/fb2/djvu/cbz/cbr — **no
+  pdf**. Most of this library is pdf, so it's set explicitly.
+- Direct Download stays silently disabled (empty release lists, no error)
+  until an Anna's Archive mirror is configured — `AA_MIRROR_URLS`. No
+  default mirror; `.is` is dead, `.gl` works.
+- Search needs a metadata provider explicitly enabled
+  (`OPENLIBRARY_ENABLED=true`), otherwise "No metadata provider
+  configured".
+- `AUTH_METHOD=builtin` with no users locks everyone out. The admin
+  (`vinkels`, password in root `.env` as `SHELFMARK_PASSWORD`) was
+  bootstrapped by briefly running `AUTH_METHOD=none` and
+  `POST /api/admin/users {"username","password","role":"admin"}` while
+  still LAN-only. Never run `none` while the Pangolin resource is up.
+- Without an AA donator key (`AA_DONATOR_KEY`) downloads use AA's slow
+  path, ~20 kB/s (a 4.6 MB pdf took ~3.5 min). Works, just slow.
+- Per upstream docs, settings saved in the UI override env-var defaults
+  (stored in `/opt/homelab/arr/shelfmark/settings.json`) — if a compose
+  env change seems ignored, check there.
+
 ## Kapowarr / ComicVine (scripts/comics/)
 
 `scripts/comics/` is gitignored (working data/state files live there, not
@@ -376,6 +404,43 @@ volume rather than doing independent ComicVine lookups per file). Reserve
 already know the target. After using it, spot-check `docker logs kapowarr`
 for unexpected `"Adding a volume to the library"` lines and `GET
 /api/volumes` for any new volume sharing a folder with one you already had.
+
+### Kapowarr V1.3.2 deadlocks when driven headless — kept alive by its healthcheck
+
+Kapowarr froze on 2026-10-25 and nothing downloaded for a month, with no
+error anywhere obvious: the API kept answering, the task queue sat static
+(cron logged "skipped - already queued" every run), and every DB write
+failed with `sqlite3.OperationalError: database is locked`. Cause is
+upstream Casvt/Kapowarr#375: the websocket queue's consumer thread only
+starts on the first socket.io connection (i.e. someone opening the web UI).
+Driven purely by API/cron, nothing ever drains that in-process pipe; once
+it fills, the thread writing to it blocks while holding the SQLite write
+lock and everything stops. Fingerprint: the main Kapowarr process
+(`python3 -u /app/Kapowarr.py`) has a thread in `anon_pipe_write`
+(`cat /proc/<pid>/task/*/wchan`), and no thread in `anon_pipe_read`.
+
+A single handshake (`GET /api/socket.io/?EIO=4&transport=polling`) starts
+the consumer and unfreezes a stuck instance on the spot — no restart
+needed. The kapowarr service's compose `healthcheck` does exactly this
+every 60s, so it's covered after any restart/recreate/image bump. Fixed
+upstream in 5073d2c (2026-10-03) but not in any release yet; remove the
+healthcheck once a release newer than V1.3.2 ships.
+
+If "Downloaded: N / 842" stops climbing for more than a day, check
+`GET /api/activity/history` for the newest `downloaded_at` before
+assuming the indexer has nothing.
+
+### Generic titles: Kapowarr's GetComics search can't reach older runs
+
+GetComics search results for a bare title like "X-Men" are dominated by
+the current run, so `auto_search` for X-Men (2021) only ever saw 2026
+issues ("Year doesn't match") and sat at 0/35 forever. The posts do exist
+at predictable URLs (`https://getcomics.org/marvel/x-men-<n>-<year>/`,
+year = release year, can differ from cover year). Workaround: verify each
+post's `<h1 class="post-title">` is exactly `X-Men #<n> (<year>)`, then
+`POST /api/issues/<issue_id>/download {"link": <post url>, "force_match":
+false, "indexer_id": 1}` — Kapowarr still runs its own match check and
+picks a working mirror. Pace the GetComics fetches (2s+).
 
 ### A GetComics/FlareSolverr stall can hang the whole task queue
 

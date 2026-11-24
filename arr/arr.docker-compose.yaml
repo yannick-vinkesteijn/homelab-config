@@ -185,4 +185,41 @@ services:
             - /mnt/nvme2/comics:/comics
         ports:
             - 5656:5656
+        # V1.3.2 only starts its websocket queue consumer on the first UI
+        # connection; driven headless via the API, the queue pipe fills and
+        # Kapowarr deadlocks holding the DB lock (Casvt/Kapowarr#375, froze
+        # 2026-10-25 for a month). A socket.io handshake starts the consumer.
+        # Drop this once a release newer than V1.3.2 ships (fix: 5073d2c).
+        healthcheck:
+            test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5656/api/socket.io/?EIO=4&transport=polling', timeout=10)"]
+            interval: 60s
+            timeout: 15s
+            start_period: 30s
+            retries: 3
+        restart: unless-stopped
+
+    shelfmark:
+        image: ghcr.io/calibrain/shelfmark:v1.7.0
+        container_name: shelfmark
+        environment:
+            - PUID=${PUID}
+            - PGID=${PGID}
+            - TZ=${TZ}
+            - AUTH_METHOD=builtin # exposed via Pangolin, never run with auth off
+            - DIRECT_DOWNLOAD_ENABLED=true # Anna's Archive / libgen
+            - AA_MIRROR_URLS=https://annas-archive.gl # no default mirror; .is is dead per upstream README
+            - OPENLIBRARY_ENABLED=true # metadata for search, no API key needed
+            - SUPPORTED_FORMATS=pdf,epub,mobi,azw3,djvu # default omits pdf, most of the library is pdf
+            - FILE_ORGANIZATION=rename # flat folder, same as the existing books library
+        volumes:
+            - /opt/homelab/arr/shelfmark:/config
+            - /mnt/ext_x10p/media/books:/books # Komga "Books" library, rescans hourly
+        ports:
+            - 8084:8084
+        mem_limit: 2g # bundled Chromium for the Cloudflare bypass
+        healthcheck:
+            test: ["CMD", "curl", "-sf", "http://localhost:8084/api/health"]
+            interval: 60s
+            timeout: 5s
+            retries: 3
         restart: unless-stopped
