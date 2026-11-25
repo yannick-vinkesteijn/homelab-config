@@ -114,6 +114,10 @@ Resources are individual services exposed through Pangolin.
 | --- | --- | --- |
 | Jellyfin | `jellyfin.<your-domain>` | `http://<host-lan-ip>:8096` |
 | Jellyseerr | `jellyseerr.<your-domain>` | `http://<host-lan-ip>:5055` |
+| Shelfmark | `shelfmark.<your-domain>` | `http://<host-lan-ip>:8084` |
+| Kapowarr | `kapowarr.<your-domain>` | `http://<host-lan-ip>:5656` |
+
+Kapowarr has its own login (`auth_username`/`auth_password` in its settings) and its API rejects requests without the API key, so it is not left open. The cron sync and the `scripts/comics/` tools call `localhost:5656` directly, so Pangolin auth on the resource doesn't affect them.
 
 ### Authentication
 
